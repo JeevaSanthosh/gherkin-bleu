@@ -1,0 +1,23 @@
+[project]
+name = "gherkin-bleu"
+version = "0.1.0"
+description = "G-BLEU: a Gherkin-aware BLEU score for evaluating generated test scenarios"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "Jeeva Santhosh" }]
+keywords = ["gherkin", "bdd", "bleu", "evaluation", "llm", "test-generation"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gherkin_bleu"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

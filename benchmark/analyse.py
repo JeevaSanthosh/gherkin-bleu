@@ -23,7 +23,8 @@ from generate import BENIGN, BREAKING, EDITS
 
 DATA = Path(__file__).parent / "data"
 LABELS = {"gbleu": "G-BLEU", "word_bleu": "word BLEU", "sacrebleu": "sacreBLEU", "rouge_l": "ROUGE-L",
-          "bertscore": "BERTScore"}
+          "bertscore": "BERTScore (raw text)",
+          "bertscore_trimmed": "BERTScore (lines trimmed)"}
 RESAMPLES = 10_000
 
 

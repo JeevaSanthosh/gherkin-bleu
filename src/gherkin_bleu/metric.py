@@ -1,7 +1,9 @@
 """G-BLEU: a Gherkin-aware BLEU score.
 
-The GherkinBLEU class below is copied unchanged from the notebook it was first
-written in. Only the imports it relies on have been added above it.
+Version 0.1.0 of the GherkinBLEU class was copied unchanged from the notebook it
+was first written in (git tag v0.1.0; also kept in tests/reference_v0_1.py).
+Version 0.2.0 fixes five tokeniser edge cases, marked "0.2.0" below. On input
+without those cases it scores exactly as 0.1.0 did.
 """
 
 import re
@@ -26,8 +28,13 @@ class GherkinBLEU:
 
     GHERKIN_KEYWORDS = {
         "feature:", "background:", "scenario:", "scenario outline:",
-        "given", "when", "then", "and", "but", "examples:", "*"
+        "given", "when", "then", "and", "but", "examples:", "*",
+        # 0.2.0: Gherkin 6 keywords and the older synonyms
+        "rule:", "example:", "scenario template:", "scenarios:",
     }
+
+    # 0.2.0: a tag runs to the next space, so "@smoke-test" stays one tag
+    TAG = re.compile(r"@[^\s@]+")
 
     @staticmethod
     def _gherkin_tokenize(text: str) -> List[str]:
@@ -35,14 +42,20 @@ class GherkinBLEU:
         tokens = []
         for line in text.split("\n"):
             stripped = line.strip()
-            if not stripped:
+            # 0.2.0: comment lines ("# language: en") are not part of the scenario
+            if not stripped or stripped.startswith("#"):
                 continue
 
-            # Tags as single tokens
-            tags = re.findall(r"@[\w_]+", stripped)
-            for tag in tags:
-                tokens.append(tag.lower())
-            stripped_no_tags = re.sub(r"@[\w_]+", "", stripped).strip()
+            # Tags as single tokens.
+            # 0.2.0: only on tag lines, which start with "@"; elsewhere "@" is
+            # ordinary text, such as an email address in a step.
+            if stripped.startswith("@"):
+                tags = GherkinBLEU.TAG.findall(stripped)
+                for tag in tags:
+                    tokens.append(tag.lower())
+                stripped_no_tags = GherkinBLEU.TAG.sub("", stripped).strip()
+            else:
+                stripped_no_tags = stripped
 
             if not stripped_no_tags:
                 continue
@@ -51,7 +64,11 @@ class GherkinBLEU:
             lower = stripped_no_tags.lower()
             keyword_found = None
             for kw in GherkinBLEU.GHERKIN_KEYWORDS:
-                if lower.startswith(kw):
+                # 0.2.0: a step keyword must be a whole word, so "Android" is not "And".
+                # startswith first: the line is then at least as long as the keyword.
+                if lower.startswith(kw) and (
+                    kw.endswith(":") or len(lower) == len(kw) or lower[len(kw)].isspace()
+                ):
                     keyword_found = kw
                     break
 
@@ -77,7 +94,7 @@ class GherkinBLEU:
         Compute G-BLEU score between reference and hypothesis Gherkin.
 
         Uses modified BLEU with Gherkin-specific tokenization and
-        brevity penalty calibrated for Gherkin output lengths.
+        the standard BLEU brevity penalty.
         """
         ref_tokens = GherkinBLEU._gherkin_tokenize(reference)
         hyp_tokens = GherkinBLEU._gherkin_tokenize(hypothesis)

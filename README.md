@@ -11,7 +11,7 @@ from gherkin_bleu import GherkinBLEU
 score = GherkinBLEU.compute(reference, generated)   # 0.0 to 1.0
 ```
 
-No dependencies. Python 3.9+.
+No dependencies. Python 3.10+.
 
 ## Why
 

@@ -3,7 +3,7 @@ name = "gherkin-bleu"
 version = "0.3.0"
 description = "G-BLEU: a Gherkin-aware BLEU score for evaluating generated test scenarios"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 authors = [{ name = "Jeeva Santhosh" }]
 keywords = ["gherkin", "bdd", "bleu", "evaluation", "llm", "test-generation"]

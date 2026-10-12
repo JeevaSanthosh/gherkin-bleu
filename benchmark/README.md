@@ -33,7 +33,8 @@ perfect. The 95% interval comes from resampling scenarios 10,000 times.
 ```bash
 pip install -e ".[benchmark]"
 python benchmark/generate.py        # data/pairs.jsonl (already committed)
-python benchmark/score.py           # data/scores.csv: G-BLEU, word BLEU, sacreBLEU, ROUGE-L
+python benchmark/score.py           # data/scores.csv: G-BLEU (with and without the
+                                    # order penalty), word BLEU, sacreBLEU, ROUGE-L
 python benchmark/analyse.py         # results.md
 ```
 

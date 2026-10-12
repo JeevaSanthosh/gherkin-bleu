@@ -24,10 +24,11 @@ G-BLEU keeps the same BLEU maths but changes what counts as a token:
 
 | Gherkin | Becomes |
 |---|---|
-| `Feature:`, `Background:`, `Scenario:`, `Scenario Outline:`, `Examples:`, `Given`, `When`, `Then`, `And`, `But`, `*` | one keyword token, e.g. `__KW_GIVEN__` |
-| A tag such as `@smoke` | one token |
+| `Feature:`, `Rule:`, `Background:`, `Scenario:`, `Example:`, `Scenario Outline:`, `Scenario Template:`, `Examples:`, `Scenarios:`, `Given`, `When`, `Then`, `And`, `But`, `*` | one keyword token, e.g. `__KW_GIVEN__` |
+| A tag such as `@smoke` or `@smoke-test`, on a tag line | one token |
 | Step text | lower-case words |
 | A keyword and the first word of its step | one extra structural token, e.g. `__KW_GIVEN_i__` |
+| A comment line (`# …`) | nothing |
 
 For example:
 
@@ -71,25 +72,39 @@ across many scenarios, with BLEU, ROUGE-L and BERTScore, is next.
 pip install git+https://github.com/JeevaSanthosh/gherkin-bleu
 ```
 
-## Known edge cases
+To reproduce scores from the original project exactly, install 0.1.0:
 
-Each has a test marked `xfail` in `tests/test_metric.py`. A test starts failing
-the suite as soon as its case is fixed, so this list cannot go stale.
+```bash
+pip install git+https://github.com/JeevaSanthosh/gherkin-bleu@v0.1.0
+```
 
-| Input | What happens |
-|---|---|
-| A line starting `Android…`, `Button…`, `Whenever…` | Read as the keyword `And`, `But` or `When`: keywords are matched as prefixes with no word boundary |
-| Gherkin 6 `Rule:` and `Example:` | Not recognised as keywords; scored as plain words |
-| A hyphenated tag such as `@smoke-test` | Split into `@smoke` and `test` |
-| An email address in a step, `jo@example.com` | `@example` is taken as a tag |
-| A comment line, `# language: en` | Scored as words |
+## Changes in 0.2.0
+
+Five tokeniser edge cases, found while packaging 0.1.0, are fixed:
+
+| Input | 0.1.0 | 0.2.0 |
+|---|---|---|
+| A line starting `Android…`, `Button…`, `Whenever…` | Read as the keyword `And`, `But` or `When` | Plain words: a step keyword must be a whole word |
+| Gherkin 6 `Rule:` and `Example:`, and `Scenario Template:`, `Scenarios:` | Plain words | A keyword token each |
+| A hyphenated tag such as `@smoke-test` | Split into `@smoke` and `test` | One tag |
+| An email address in a step, `jo@example.com` | `@example` taken as a tag | Plain words: tags are only read on tag lines |
+| A comment line, `# language: en` | Scored as words | Ignored |
+
+The class docstring also no longer claims a "calibrated" brevity penalty; it is
+the standard BLEU one, in both versions.
+
+On Gherkin without these cases, 0.2.0 scores exactly as 0.1.0 did.
+`tests/test_compatibility.py` checks this against the original class, kept in
+`tests/reference_v0_1.py`. Every score in this README is the same under both
+versions.
 
 ## Origin
 
 G-BLEU was written for a capstone project on generating Gherkin scenarios with
 a fine-tuned small language model, where it was one part of a composite
-evaluation score. This repository holds the metric only, copied unchanged from
-that project. It contains no data, prompts, models or results from it.
+evaluation score. Version 0.1.0 is the metric copied unchanged from that
+project (tag `v0.1.0`). The repository contains no data, prompts, models or
+results from it.
 
 ## Licence
 

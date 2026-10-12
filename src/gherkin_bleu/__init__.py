@@ -3,4 +3,4 @@
 from .metric import GherkinBLEU
 
 __all__ = ["GherkinBLEU"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"

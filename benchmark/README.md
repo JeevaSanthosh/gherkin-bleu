@@ -37,7 +37,11 @@ python benchmark/score.py           # data/scores.csv: G-BLEU, word BLEU, sacreB
 python benchmark/analyse.py         # results.md
 ```
 
-BERTScore downloads a 1.4 GB model on first use:
+BERTScore downloads a 1.4 GB model on first use. It scores each pair twice: on
+the text as written (`bertscore`) and with each line stripped and blank lines
+dropped (`bertscore_trimmed`). The other metrics already ignore whitespace, so
+the trimmed column is the like-for-like one; raw BERTScore marks re-indented
+scenarios down.
 
 ```bash
 pip install -e ".[bertscore]"

@@ -11,6 +11,8 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+benchmark = ["sacrebleu>=2.4", "rouge-score>=0.1.2"]
+bertscore = ["bert-score>=0.3.13"]
 
 [build-system]
 requires = ["hatchling"]
@@ -21,3 +23,4 @@ packages = ["src/gherkin_bleu"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["benchmark"]

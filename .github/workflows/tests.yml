@@ -19,3 +19,16 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: pytest -q
       - run: python examples/structure_sensitivity.py
+
+  benchmark:
+    # Re-scores the committed benchmark pairs and fails if the scores or results drift
+    # from what is committed, so the README's numbers always match the code.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -e ".[benchmark]"
+      - run: python benchmark/score.py && python benchmark/analyse.py > /dev/null
+      - run: git diff --exit-code benchmark/data/scores.csv benchmark/results.md

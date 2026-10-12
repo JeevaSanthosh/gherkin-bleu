@@ -3,6 +3,7 @@
 The first group pins the metric's behaviour on ordinary Gherkin, so any change to
 scoring is deliberate. The second group covers the tokeniser edge cases fixed in
 0.2.0; until then they were strict xfail tests recording each case as a known bug.
+The third covers the order penalty added in 0.3.0.
 """
 
 import math
@@ -141,3 +142,123 @@ def test_a_short_line_is_safe_whatever_order_the_keywords_are_checked_in(monkeyp
     monkeypatch.setattr(GherkinBLEU, "GHERKIN_KEYWORDS", longest_first)
     assert tokens("And") == ["__KW_AND__"]
     assert tokens("*") == ["__KW_*__"]
+
+
+# --- 0.3.0: order penalty -----------------------------------------------------
+
+SEARCH = """Scenario: Search
+  Given I am on the home page
+  And the catalogue has lamps
+  When I search for lamps
+  Then I see at least 5 results
+  And every result mentions lamps"""
+
+
+def order_penalty(reference: str, hypothesis: str) -> float:
+    return GherkinBLEU._order_penalty(reference, hypothesis)
+
+
+def without_penalty(reference: str, hypothesis: str) -> float:
+    return GherkinBLEU.compute(reference, hypothesis, order_penalty=False)
+
+
+def test_outcomes_before_the_action_are_penalised():
+    hypothesis = """Scenario: Search
+  Given I am on the home page
+  And the catalogue has lamps
+  Then I see at least 5 results
+  And every result mentions lamps
+  When I search for lamps"""
+    # four of the five steps are in order; the action has to move
+    assert order_penalty(SEARCH, hypothesis) == 0.8
+    assert GherkinBLEU.compute(SEARCH, hypothesis) == pytest.approx(0.8 * without_penalty(SEARCH, hypothesis))
+
+
+@pytest.mark.parametrize(
+    "hypothesis",
+    [
+        SEARCH.replace("  ", "      "),                                         # re-indented
+        SEARCH.replace("And the catalogue", "Given the catalogue"),           # And written out
+        SEARCH.replace("I see at least 5 results", "at least 5 results are shown"),  # reworded
+        SEARCH.replace("\n  And every result mentions lamps", ""),           # a step missing
+        SEARCH.replace("Given I am", "Then I am").replace("Then I see", "Given I see"),  # keywords swapped
+        SEARCH.replace("5 results", "50 results"),                           # wrong value
+    ],
+)
+def test_steps_in_order_score_exactly_as_0_2_0(hypothesis):
+    assert order_penalty(SEARCH, hypothesis) == 1.0
+    assert GherkinBLEU.compute(SEARCH, hypothesis) == without_penalty(SEARCH, hypothesis)
+
+
+def test_order_penalty_false_leaves_reordered_steps_unpenalised():
+    reversed_steps = "\n".join(["Scenario: Search"] + SEARCH.splitlines()[:0:-1])
+    assert GherkinBLEU.compute(SEARCH, reversed_steps, order_penalty=False) == without_penalty(SEARCH, reversed_steps)
+    assert GherkinBLEU.compute(SEARCH, reversed_steps) < without_penalty(SEARCH, reversed_steps)
+
+
+def test_reversed_steps_keep_one_in_place():
+    reference = "Given I open the app\nWhen I tap Start\nThen the timer runs"
+    hypothesis = "Then the timer runs\nWhen I tap Start\nGiven I open the app"
+    assert order_penalty(reference, hypothesis) == pytest.approx(1 / 3)
+
+
+def test_a_moved_step_is_caught_even_when_its_keyword_changes():
+    hypothesis = """Scenario: Search
+  Given I am on the home page
+  And the catalogue has lamps
+  And I see at least 5 results
+  When I search for lamps
+  Then every result mentions lamps"""
+    assert order_penalty(SEARCH, hypothesis) == 0.8
+
+
+def test_swapping_whole_scenarios_is_not_penalised():
+    first = """Scenario: Sign in
+  Given I am on the sign-in page
+  When I sign in as Alice
+  Then I see my dashboard"""
+    second = """Scenario: Sign out
+  Given I am signed in
+  When I sign out
+  Then I see the sign-in page"""
+    feature = "Feature: Accounts\n  Background:\n    Given the site is up\n"
+    assert order_penalty(feature + first + "\n" + second, feature + second + "\n" + first) == 1.0
+
+
+def test_the_role_keeps_a_reworded_step_matched_to_its_own_step():
+    # "I log in as Alice" shares more words with "I am greeted as Alice" than with
+    # "I sign in with the details for Alice"; being a When step decides it.
+    reference = """Given Alice has viewer access
+When I sign in with the details for Alice
+Then I see the viewer dashboard
+And I am greeted as Alice"""
+    hypothesis = """Given Alice has viewer access
+When I log in as Alice
+Then I see the viewer dashboard
+And the welcome message names Alice"""
+    assert order_penalty(reference, hypothesis) == 1.0
+
+
+def test_steps_that_cannot_be_told_apart_are_not_matched():
+    reference = "Given I press Next\nAnd I press Next\nThen I see the summary"
+    moved = "Then I see the summary\nGiven I press Next\nAnd I press Next"
+    # the two identical steps tie, so only one step is matched: nothing to order
+    assert order_penalty(reference, moved) == 1.0
+
+
+@pytest.mark.parametrize("hypothesis", ["Given I open the app", "Feature: Timer", "just some words"])
+def test_fewer_than_two_matched_steps_mean_no_penalty(hypothesis):
+    assert order_penalty("Given I open the app\nWhen I tap Start\nThen the timer runs", hypothesis) == 1.0
+
+
+@pytest.mark.xfail(strict=True, reason="known limitation: steps are matched by shared words")
+def test_a_reworded_given_that_reads_like_the_reference_outcome():
+    # Seen in 9 of 2,000 freshly generated benchmark scenarios, all from one template:
+    # the reworded Given shares more words with the reference's Then than with its own step.
+    reference = """Given my current account has a balance of £500
+When I transfer £300 out of my current account
+Then there is £200 left in my current account"""
+    hypothesis = """Given there is £500 in my current account
+When I transfer £300 out of my current account
+Then my current balance is £200"""
+    assert order_penalty(reference, hypothesis) == 1.0

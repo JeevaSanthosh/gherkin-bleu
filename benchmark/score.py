@@ -1,9 +1,10 @@
 """Score every benchmark pair with the metrics that run anywhere.
 
-  gbleu      G-BLEU, this package
-  word_bleu  the same BLEU maths with plain word tokens: isolates G-BLEU's tokeniser
-  sacrebleu  standard sentence BLEU (sacreBLEU defaults: 13a tokeniser, exp smoothing)
-  rouge_l    ROUGE-L F-measure (Google's rouge-score)
+  gbleu           G-BLEU, this package
+  gbleu_no_order  G-BLEU without the order penalty added in 0.3.0: the 0.2.0 score
+  word_bleu       the same BLEU maths with plain word tokens: isolates G-BLEU's tokeniser
+  sacrebleu       standard sentence BLEU (sacreBLEU defaults: 13a tokeniser, exp smoothing)
+  rouge_l         ROUGE-L F-measure (Google's rouge-score)
 
 BERTScore needs a model download, so it has its own script: score_bertscore.py.
 
@@ -51,12 +52,13 @@ def main() -> None:
     rouge = rouge_scorer.RougeScorer(["rougeL"])
     with (DATA / "scores.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["id", "edit", "gbleu", "word_bleu", "sacrebleu", "rouge_l"])
+        writer.writerow(["id", "edit", "gbleu", "gbleu_no_order", "word_bleu", "sacrebleu", "rouge_l"])
         for p in pairs:
             ref, hyp = p["reference"], p["hypothesis"]
             writer.writerow([
                 p["id"], p["edit"],
                 f"{GherkinBLEU.compute(ref, hyp):.6f}",
+                f"{GherkinBLEU.compute(ref, hyp, order_penalty=False):.6f}",
                 f"{word_bleu(ref, hyp):.6f}",
                 f"{bleu.sentence_score(hyp, [ref]).score / 100:.6f}",
                 f"{rouge.score(ref, hyp)['rougeL'].fmeasure:.6f}",

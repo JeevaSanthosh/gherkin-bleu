@@ -22,7 +22,7 @@ import numpy as np
 from generate import BENIGN, BREAKING, EDITS
 
 DATA = Path(__file__).parent / "data"
-LABELS = {"gbleu": "G-BLEU", "word_bleu": "word BLEU", "sacrebleu": "sacreBLEU", "rouge_l": "ROUGE-L",
+LABELS = {"gbleu": "G-BLEU", "gbleu_no_order": "G-BLEU 0.2.0 (no order penalty)", "word_bleu": "word BLEU", "sacrebleu": "sacreBLEU", "rouge_l": "ROUGE-L",
           "bertscore": "BERTScore (raw text)",
           "bertscore_trimmed": "BERTScore (lines trimmed)"}
 RESAMPLES = 10_000

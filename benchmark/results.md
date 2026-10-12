@@ -8,7 +8,8 @@ How often the metric scores a meaning-preserving edit above a meaning-breaking e
 
 | Metric | Pairwise accuracy | 95% interval |
 |---|---:|---|
-| G-BLEU | 0.687 | 0.681 to 0.692 |
+| G-BLEU | 0.798 | 0.789 to 0.806 |
+| G-BLEU 0.2.0 (no order penalty) | 0.687 | 0.681 to 0.692 |
 | word BLEU | 0.594 | 0.591 to 0.596 |
 | sacreBLEU | 0.601 | 0.596 to 0.606 |
 | ROUGE-L | 0.703 | 0.696 to 0.710 |
@@ -19,33 +20,33 @@ How often the metric scores a meaning-preserving edit above a meaning-breaking e
 
 Accuracy against each breaking edit, over all three harmless edits.
 
-| Breaking edit | G-BLEU | word BLEU | sacreBLEU | ROUGE-L | BERTScore (raw text) | BERTScore (lines trimmed) |
-|---|---:|---:|---:|---:|---:|---:|
-| keyword_swap | 0.767 | 0.333 | 0.333 | 0.509 | 0.323 | 0.850 |
-| steps_out_of_order | 0.333 | 0.333 | 0.333 | 0.968 | 0.847 | 0.905 |
-| missing_assertion | 1.000 | 0.998 | 0.992 | 0.978 | 1.000 | 1.000 |
-| wrong_value | 0.333 | 0.333 | 0.377 | 0.374 | 0.103 | 0.423 |
-| keywords_missing | 1.000 | 0.970 | 0.970 | 0.685 | 0.998 | 1.000 |
+| Breaking edit | G-BLEU | G-BLEU 0.2.0 (no order penalty) | word BLEU | sacreBLEU | ROUGE-L | BERTScore (raw text) | BERTScore (lines trimmed) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| keyword_swap | 0.767 | 0.767 | 0.333 | 0.333 | 0.509 | 0.323 | 0.850 |
+| steps_out_of_order | 0.888 | 0.333 | 0.333 | 0.333 | 0.968 | 0.847 | 0.905 |
+| missing_assertion | 1.000 | 1.000 | 0.998 | 0.992 | 0.978 | 1.000 | 1.000 |
+| wrong_value | 0.333 | 0.333 | 0.333 | 0.377 | 0.374 | 0.103 | 0.423 |
+| keywords_missing | 1.000 | 1.000 | 0.970 | 0.970 | 0.685 | 0.998 | 1.000 |
 
 ### Which harmless edits each metric over-penalises
 
 Accuracy for each harmless edit, against all five breaking edits.
 
-| Harmless edit | G-BLEU | word BLEU | sacreBLEU | ROUGE-L | BERTScore (raw text) | BERTScore (lines trimmed) |
-|---|---:|---:|---:|---:|---:|---:|
-| reformatted | 1.000 | 1.000 | 1.000 | 1.000 | 0.548 | 1.000 |
-| paraphrase | 0.476 | 0.381 | 0.382 | 0.387 | 0.647 | 0.696 |
-| and_restyle | 0.584 | 0.400 | 0.422 | 0.722 | 0.768 | 0.811 |
+| Harmless edit | G-BLEU | G-BLEU 0.2.0 (no order penalty) | word BLEU | sacreBLEU | ROUGE-L | BERTScore (raw text) | BERTScore (lines trimmed) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| reformatted | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.548 | 1.000 |
+| paraphrase | 0.609 | 0.476 | 0.381 | 0.382 | 0.387 | 0.647 | 0.696 |
+| and_restyle | 0.784 | 0.584 | 0.400 | 0.422 | 0.722 | 0.768 | 0.811 |
 
 ## Mean score per edit
 
-| Edit | Breaks meaning | G-BLEU | word BLEU | sacreBLEU | ROUGE-L | BERTScore (raw text) | BERTScore (lines trimmed) |
-|---|---|---:|---:|---:|---:|---:|---:|
-| reformatted | no | 1.000 | 1.000 | 1.000 | 1.000 | 0.888 | 1.000 |
-| paraphrase | no | 0.769 | 0.760 | 0.768 | 0.873 | 0.913 | 0.910 |
-| and_restyle | no | 0.811 | 0.872 | 0.876 | 0.952 | 0.940 | 0.927 |
-| keyword_swap | yes | 0.788 | 0.891 | 0.894 | 0.952 | 0.934 | 0.901 |
-| steps_out_of_order | yes | 0.935 | 0.934 | 0.936 | 0.796 | 0.875 | 0.889 |
-| missing_assertion | yes | 0.600 | 0.600 | 0.615 | 0.796 | 0.791 | 0.796 |
-| wrong_value | yes | 0.940 | 0.931 | 0.928 | 0.972 | 0.975 | 0.972 |
-| keywords_missing | yes | 0.592 | 0.667 | 0.678 | 0.936 | 0.834 | 0.795 |
+| Edit | Breaks meaning | G-BLEU | G-BLEU 0.2.0 (no order penalty) | word BLEU | sacreBLEU | ROUGE-L | BERTScore (raw text) | BERTScore (lines trimmed) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| reformatted | no | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 0.888 | 1.000 |
+| paraphrase | no | 0.769 | 0.769 | 0.760 | 0.768 | 0.873 | 0.913 | 0.910 |
+| and_restyle | no | 0.811 | 0.811 | 0.872 | 0.876 | 0.952 | 0.940 | 0.927 |
+| keyword_swap | yes | 0.788 | 0.788 | 0.891 | 0.894 | 0.952 | 0.934 | 0.901 |
+| steps_out_of_order | yes | 0.748 | 0.935 | 0.934 | 0.936 | 0.796 | 0.875 | 0.889 |
+| missing_assertion | yes | 0.600 | 0.600 | 0.600 | 0.615 | 0.796 | 0.791 | 0.796 |
+| wrong_value | yes | 0.940 | 0.940 | 0.931 | 0.928 | 0.972 | 0.975 | 0.972 |
+| keywords_missing | yes | 0.592 | 0.592 | 0.667 | 0.678 | 0.936 | 0.834 | 0.795 |

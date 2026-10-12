@@ -1,4 +1,5 @@
-"""0.2.0 must score exactly like 0.1.0 on Gherkin without the fixed edge cases.
+"""Without the order penalty (0.3.0), scores must match 0.1.0 exactly on Gherkin
+without the edge cases fixed in 0.2.0.
 
 The scenarios below use every keyword 0.1.0 knew, tags, tables, outlines and
 multi-scenario features, but no comment lines, hyphenated tags, email addresses,
@@ -53,8 +54,8 @@ def test_tokens_are_unchanged(text):
 
 
 @pytest.mark.parametrize("reference, hypothesis", list(itertools.product(SCENARIOS, repeat=2)))
-def test_scores_are_unchanged(reference, hypothesis):
-    assert GherkinBLEU.compute(reference, hypothesis) == GherkinBLEU_0_1.compute(reference, hypothesis)
+def test_scores_are_unchanged_without_the_order_penalty(reference, hypothesis):
+    assert GherkinBLEU.compute(reference, hypothesis, order_penalty=False) == GherkinBLEU_0_1.compute(reference, hypothesis)
 
 
 @pytest.mark.parametrize(
